@@ -16,15 +16,18 @@ except Exception as e:
 
 server='http://10.70.50.215'
 
+
 def get_asset(AssetTAG):
     A = Assets()
     r = A.getDetailsByTag(server, token, AssetTAG)
     print(r)
 
-def check_out_asset(assetID):
+def check_out_asset(assetID, userID):
     A = Assets()
-    r = A.checkOutAsset(server, token, assetID, note=None, locationID=None)
+    r = A.checkOutAsset(server, token, assetID, userID, note=None, locationID=None)
+    #Add try catch for assets that were already checked out
     print(r)
 
 
-check_out_asset("asdf1234")
+check_out_asset(1, 1)
+#get_asset("asdf1234")
