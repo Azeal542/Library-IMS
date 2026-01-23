@@ -1,3 +1,18 @@
+"""
+To do:
+- Audit updateDevice in Assets.py
+- Audit auditAsset in Assets.py
+- Audit getAuditDue in Assets.py
+- Audit getAuditOverdue in Assets.py
+
+
+"""
+
+
+
+
+
+
 from snipeit import Assets
 # Read the token from the file
 try:
@@ -122,6 +137,6 @@ def delete_asset(assetID):
 #get_details_by_id("1")
 #get_details_by_tag("asdf1234")
 #get_details_by_serial("1234")
-create_asset("testtag1234", 2, 1, "Test Asset")
+#create_asset("testtag1234", 2, 1, "Test Asset")
 #get_id("testtag1234")
 #delete_asset("2")
