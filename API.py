@@ -13,7 +13,7 @@ To do:
 
 
 
-from snipeit import Assets
+from snipeit import Assets, Users
 # Read the token from the file
 try:
     with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\api.txt", 'r') as file:
@@ -122,6 +122,15 @@ def delete_asset(assetID):
     r = A.delete(server, token, assetID)
     print(r)
 
+def get_ID_by_EmployeeID(employeeID):
+    U = Users()
+    r = U.getIDByEmployeeID(server, token, employeeID)
+    print(r)
+def get_Full_Name_By_Employee_ID(employeeID):
+    U = Users()
+    r = U.getFullNameByEmployeeID(server, token, employeeID)
+    print(r)
+
 #check_out_asset(1, 1)
 #get_asset("asdf1234")
 #check_in_asset(1)
@@ -140,3 +149,5 @@ def delete_asset(assetID):
 #create_asset("testtag1234", 2, 1, "Test Asset")
 #get_id("testtag1234")
 #delete_asset("2")
+#get_ID_by_EmployeeID("12341234")
+#get_Full_Name_By_Employee_ID("12341234")

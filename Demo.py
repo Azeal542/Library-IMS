@@ -11,6 +11,8 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.constants import *
 import os.path
+import API
+
 logger = logging.getLogger()
 _location = os.path.dirname(__file__)
 
@@ -24,18 +26,21 @@ def main(*args):
     '''Main entry point for the application.'''
     global root
     root = tk.Tk()
-    root.withdraw()  # 👉 Hide the main Tk window
+    root.withdraw()  #Hide the main Tk window
 
     global _top1
     _top1 = tk.Toplevel(root)
+    _top1.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
     _w1 = SignInApp(_top1)
 
     root.mainloop()
 
 def openCheckInWindow():
     global _top2
+    hide_signin()
     if _top2 is None or not _top2.winfo_exists():
         _top2 = tk.Toplevel(root)
+        _top2.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
         _w2 = checkInApp(_top2)
     else:
         _top2.focus()
@@ -45,6 +50,7 @@ def openCheckOutWindow():
     hide_signin()
     if _top3 is None or not _top3.winfo_exists():
         _top3 = tk.Toplevel(root)
+        _top3.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
         _w3 = checkOutApp(_top3)
     else:
         _top3.focus()
@@ -117,6 +123,24 @@ class SignInApp:
         self.Checkin.configure(text='''Check in''')
         self.Checkin.configure(command=openCheckInWindow)
 
+        self.test = tk.Button(self.top)
+        self.test.place(relx=0.317, rely=0.45, height=36, width=107)
+        self.test.configure(activebackground="#9395D3")
+        self.test.configure(activeforeground="black")
+        self.test.configure(background="#B3B7EE")
+        self.test.configure(compound='left')
+        self.test.configure(disabledforeground="#a3a3a3")
+        self.test.configure(foreground="black")
+        self.test.configure(highlightbackground="#d9d9d9")
+        self.test.configure(highlightcolor="black")
+        self.test.configure(text='''sign in test''')
+        self.test.configure(
+            command=lambda: (
+                API.get_Full_Name_By_Employee_ID(self.TEntry1.get())
+                if self.TEntry1.get().strip()
+                else None
+            )
+        )
         self.Label1 = tk.Label(self.top)
         self.Label1.place(relx=0.3, rely=0.1, height=61, width=146)
         self.Label1.configure(activebackground="#d9d9d9")
@@ -193,6 +217,7 @@ class checkInApp:
         self.Button2.configure(highlightbackground="#d9d9d9")
         self.Button2.configure(highlightcolor="black")
         self.Button2.configure(text='''Check In and Exit''')
+        self.Button2.configure(command=lambda: root.destroy())
 
         self.Button1 = tk.Button(self.top)
         self.Button1.place(relx=0.064, rely=0.694, height=36, width=127)
@@ -380,6 +405,7 @@ class checkOutApp:
         self.Button2_1.configure(highlightbackground="#d9d9d9")
         self.Button2_1.configure(highlightcolor="black")
         self.Button2_1.configure(text='''Check Out and Exit''')
+        self.Button2_1.configure(command=lambda: root.destroy())
 
 # The following code is added to facilitate the Scrolled widgets you specified.
 class AutoScroll(object):
