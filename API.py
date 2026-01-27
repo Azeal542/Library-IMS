@@ -170,3 +170,4 @@ def get_Data_By_Serial(assetID):
 #    serialdetails = json.loads(tagdetails)['serial']
 #    NameSerial = get_Data_By_Serial(serialdetails)
 #    print("Error checking in asset:", "Error checking in asset " + NameSerial[0] + " is already checked in.")
+check_in_asset("3")
