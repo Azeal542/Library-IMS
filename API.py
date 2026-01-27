@@ -12,18 +12,18 @@ To do:
 
 
 
-
+import json
 from snipeit import Assets, Users
 # Read the token from the file
 try:
-    with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\api.txt", 'r') as file:
+    with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\API.txt", 'r') as file:
         token = file.read().strip()  # .strip() removes any leading/trailing whitespace
     print(f"Token loaded successfully: {token[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:
-    print("Error: The file C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\api.txt was not found.")
+    print("Error: The file C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\API.txt was not found.")
     token = None
 except PermissionError:
-    print("Error: Permission denied when reading C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\api.txt")
+    print("Error: Permission denied when reading C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\API.txt")
     token = None
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -39,18 +39,18 @@ def get_assets():
 def check_in_asset(assetID):
     A = Assets()
     r = A.checkInAsset(server, token, assetID, note=None, locationID=None)
-    print(r)
+    return r
 
 def get_asset(AssetTAG):
     A = Assets()
     r = A.getDetailsByTag(server, token, AssetTAG)
-    print(r)
+    return r
 
 def check_out_asset(assetID, userID):
     A = Assets()
     r = A.checkOutAsset(server, token, assetID, userID, note=None, locationID=None)
     #Add try catch for assets that were already checked out
-    print(r)
+    return r
 
 def search_assets(keyword):
     A = Assets()
@@ -100,7 +100,7 @@ def get_details_by_id(assetID):
 def get_details_by_tag(tag):
     A = Assets()
     r = A.getDetailsByTag(server, token, tag)
-    print(r)
+    return r
 
 def get_details_by_serial(serial):
     A = Assets()
@@ -162,3 +162,11 @@ def get_Data_By_Serial(assetID):
 #    get_Name_By_Serial(each)
 #get_Data_By_Serial("1234")
 # returns ('null', 'asdf1234')
+#print(json.loads(get_details_by_tag("asdf1234"))['serial'])
+#each = "1"
+#result = check_in_asset(each)
+#if json.loads(result)['status'] != 'success':
+#    tagdetails = get_details_by_tag(json.loads(result)['payload']['asset_tag']).decode('utf-8')
+#    serialdetails = json.loads(tagdetails)['serial']
+#    NameSerial = get_Data_By_Serial(serialdetails)
+#    print("Error checking in asset:", "Error checking in asset " + NameSerial[0] + " is already checked in.")

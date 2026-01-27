@@ -6,12 +6,13 @@
 #    Jan 26, 2026 11:41:24 AM PST  platform: Windows NT
 
 import logging
-import sys
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.messagebox as messagebox
 from tkinter.constants import *
 import os.path
 import API
+import json
 
 logger = logging.getLogger()
 _location = os.path.dirname(__file__)
@@ -22,10 +23,10 @@ _top1 = None
 _top2 = None
 _top3 = None
 assetlist = []
-global user
-user = None
 global signintxt
 signintxt = "Scan your ID"
+global user
+user = None
 
 
 def main(*args):
@@ -43,7 +44,8 @@ def main(*args):
 
 def openCheckInWindow():
     global _top2
-    if user is not None:
+    if user is None:
+        messagebox.showerror("Error", "Please sign in first")
         return
     elif _top2 is None or not _top2.winfo_exists():
         hide_signin()
@@ -55,8 +57,11 @@ def openCheckInWindow():
 
 def openCheckOutWindow():
     global _top3
-    hide_signin()
-    if _top3 is None or not _top3.winfo_exists():
+    if user is None:
+        messagebox.showerror("Error", "Please sign in first")
+        return
+    elif _top3 is None or not _top3.winfo_exists():
+        hide_signin()
         _top3 = tk.Toplevel(root)
         _top3.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
         _w3 = checkOutApp(_top3)
@@ -75,21 +80,62 @@ def hide_signin():
         _top1.destroy()
 
 def add_Entry_To_List(entry, listbox):
-    NameSerial = API.get_Data_By_Serial(entry)
+    global NameSerial
+    try:
+        NameSerial = API.get_Data_By_Serial(entry)
+    except Exception as e:
+        messagebox.showerror("Error fetching data:", e)
+        return
     listbox.insert(END, NameSerial[0])
     assetlist.append(NameSerial[1])
     print(assetlist)
 
 def test_click(login):
     value = login.get()
+    global user
+    print (value)
     if value:
-        fullname = API.get_Full_Name_By_Employee_ID(value)
-        user = API.get_ID_by_EmployeeID(value)
-        print("Welcome, " + fullname)
+        try:
+            fullname = API.get_Full_Name_By_Employee_ID(value)
+            user = API.get_ID_by_EmployeeID(value)
+            print(user)
+            messagebox.showinfo("Welcome", "Welcome, " + fullname)
+        except:
+            messagebox.showerror("Error", "Sign in failed")
+            return
+    else:
+        messagebox.showerror("Error", "Please enter an ID")
+        return
+    root.update_idletasks() 
     
 def checkin_list():
     for each in assetlist:
-        API.check_in_asset(each)
+        result = API.check_in_asset(each)
+        if json.loads(result)['status'] != 'success':
+            tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset_tag']).decode('utf-8')
+            serialdetails = json.loads(tagdetails)['serial']
+            NameSerial = API.get_Data_By_Serial(serialdetails)
+            messagebox.showerror("Error checking in asset:", "Error checking in asset: " + NameSerial[0] + " is already checked in.")
+        else:
+            tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset_tag']).decode('utf-8')
+            serialdetails = json.loads(tagdetails)['serial']
+            NameSerial = API.get_Data_By_Serial(serialdetails)
+            messagebox.showinfo("Success", "Checked in asset: " + NameSerial[0])
+
+def checkout_list():
+    for each in assetlist:
+        usera = str(user)
+        result = API.check_out_asset(each, user)
+        if json.loads(result)['status'] != 'success':
+            tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset']).decode('utf-8')
+            serialdetails = json.loads(tagdetails)['serial']
+            NameSerial = API.get_Data_By_Serial(serialdetails)
+            messagebox.showerror("Error checking out asset:", "Error checking out asset: " + NameSerial[0] + " is already checked out.")
+        else:
+            tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset_tag']).decode('utf-8')
+            serialdetails = json.loads(tagdetails)['serial']
+            NameSerial = API.get_Data_By_Serial(serialdetails)
+            messagebox.showinfo("Success", "Checked out asset: " + NameSerial[0])
 
 _bgcolor = '#d9d9d9'
 _fgcolor = 'black'
@@ -346,13 +392,14 @@ class checkOutApp:
         self.Button1_1.configure(highlightbackground="#d9d9d9")
         self.Button1_1.configure(highlightcolor="black")
         self.Button1_1.configure(text='''Add to cart''')
+        self.Button1_1.configure(command=lambda: add_Entry_To_List(self.TEntry1_1_1.get(), self.Scrolledlistbox1_1))
 
         _style_code()
         self.TEntry1_1_1 = ttk.Entry(self.top)
         self.TEntry1_1_1.place(relx=0.085, rely=0.472, relheight=0.059
                 , relwidth=0.251)
         self.TEntry1_1_1.configure(exportselection="0")
-        self.TEntry1_1_1.configure(state='readonly')
+        #self.TEntry1_1_1.configure(state='readonly')
         self.TEntry1_1_1.configure(cursor="ibeam")
 
         self.Label2_1 = tk.Label(self.top)
@@ -428,7 +475,7 @@ class checkOutApp:
         self.Button2_1.configure(highlightbackground="#d9d9d9")
         self.Button2_1.configure(highlightcolor="black")
         self.Button2_1.configure(text='''Check Out and Exit''')
-        self.Button2_1.configure(command=lambda: root.destroy())
+        self.Button2_1.configure(command=lambda: checkout_list())
 
 # The following code is added to facilitate the Scrolled widgets you specified.
 class AutoScroll(object):
