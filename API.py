@@ -125,11 +125,17 @@ def delete_asset(assetID):
 def get_ID_by_EmployeeID(employeeID):
     U = Users()
     r = U.getIDByEmployeeID(server, token, employeeID)
-    print(r)
+    return r
 def get_Full_Name_By_Employee_ID(employeeID):
     U = Users()
     r = U.getFullNameByEmployeeID(server, token, employeeID)
-    print(r)
+    return r
+
+def get_Data_By_Serial(assetID):
+    A = Assets()
+    r = A.getDataBySerial(server, token, assetID)
+    return r
+    #print(r)
 
 #check_out_asset(1, 1)
 #get_asset("asdf1234")
@@ -151,3 +157,8 @@ def get_Full_Name_By_Employee_ID(employeeID):
 #delete_asset("2")
 #get_ID_by_EmployeeID("12341234")
 #get_Full_Name_By_Employee_ID("12341234")
+#list = ["123443121", "1234"]
+#for each in list:
+#    get_Name_By_Serial(each)
+#get_Data_By_Serial("1234")
+# returns ('null', 'asdf1234')

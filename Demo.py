@@ -21,6 +21,12 @@ root = None
 _top1 = None
 _top2 = None
 _top3 = None
+assetlist = []
+global user
+user = None
+global signintxt
+signintxt = "Scan your ID"
+
 
 def main(*args):
     '''Main entry point for the application.'''
@@ -37,8 +43,10 @@ def main(*args):
 
 def openCheckInWindow():
     global _top2
-    hide_signin()
-    if _top2 is None or not _top2.winfo_exists():
+    if user is not None:
+        return
+    elif _top2 is None or not _top2.winfo_exists():
+        hide_signin()
         _top2 = tk.Toplevel(root)
         _top2.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
         _w2 = checkInApp(_top2)
@@ -65,6 +73,23 @@ def close_window(name):
 def hide_signin():
     if _top1 is not None:
         _top1.destroy()
+
+def add_Entry_To_List(entry, listbox):
+    NameSerial = API.get_Data_By_Serial(entry)
+    listbox.insert(END, NameSerial[0])
+    assetlist.append(NameSerial[1])
+    print(assetlist)
+
+def test_click(login):
+    value = login.get()
+    if value:
+        fullname = API.get_Full_Name_By_Employee_ID(value)
+        user = API.get_ID_by_EmployeeID(value)
+        print("Welcome, " + fullname)
+    
+def checkin_list():
+    for each in assetlist:
+        API.check_in_asset(each)
 
 _bgcolor = '#d9d9d9'
 _fgcolor = 'black'
@@ -134,13 +159,8 @@ class SignInApp:
         self.test.configure(highlightbackground="#d9d9d9")
         self.test.configure(highlightcolor="black")
         self.test.configure(text='''sign in test''')
-        self.test.configure(
-            command=lambda: (
-                API.get_Full_Name_By_Employee_ID(self.TEntry1.get())
-                if self.TEntry1.get().strip()
-                else None
-            )
-        )
+        self.test.configure(command=lambda: test_click(self.TEntry1))
+
         self.Label1 = tk.Label(self.top)
         self.Label1.place(relx=0.3, rely=0.1, height=61, width=146)
         self.Label1.configure(activebackground="#d9d9d9")
@@ -168,7 +188,7 @@ class SignInApp:
         self.Label3.configure(foreground="black")
         self.Label3.configure(highlightbackground="#d9d9d9")
         self.Label3.configure(highlightcolor="black")
-        self.Label3.configure(text='''Scan your ID''')
+        self.Label3.configure(text=signintxt)
 
         self.Checkin_1 = tk.Button(self.top)
         self.Checkin_1.place(relx=0.317, rely=0.7, height=36, width=107)
@@ -217,7 +237,9 @@ class checkInApp:
         self.Button2.configure(highlightbackground="#d9d9d9")
         self.Button2.configure(highlightcolor="black")
         self.Button2.configure(text='''Check In and Exit''')
-        self.Button2.configure(command=lambda: root.destroy())
+        self.Button2.configure(command=lambda:
+                               checkin_list()
+                               )
 
         self.Button1 = tk.Button(self.top)
         self.Button1.place(relx=0.064, rely=0.694, height=36, width=127)
@@ -231,13 +253,14 @@ class checkInApp:
         self.Button1.configure(highlightbackground="#d9d9d9")
         self.Button1.configure(highlightcolor="black")
         self.Button1.configure(text='''Add to cart''')
+        self.Button1.configure(command=lambda: add_Entry_To_List(self.TEntry1_1.get(), self.Scrolledlistbox1))
 
         _style_code()
         self.TEntry1_1 = ttk.Entry(self.top)
         self.TEntry1_1.place(relx=0.085, rely=0.472, relheight=0.059
                 , relwidth=0.251)
         self.TEntry1_1.configure(exportselection="0")
-        self.TEntry1_1.configure(state='readonly')
+        #self.TEntry1_1.configure(state='readonly')
         self.TEntry1_1.configure(cursor="ibeam")
 
         self.Label2 = tk.Label(self.top)
