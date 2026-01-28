@@ -7,13 +7,60 @@
 
 import sys
 import tkinter as tk
+import tkinter.filedialog as fd
 import tkinter.ttk as ttk
 from tkinter.constants import *
 import os.path
+import csv
+
+root = None
+_top1 = None
+_top2 = None
+_top3 = None   
 
 _location = os.path.dirname(__file__)
 
-import AdminApp_support
+def main(*args):
+    '''Main entry point for the application.'''
+    global root
+    root = tk.Tk()
+    root.withdraw()
+    # Opens home.
+    global _top3, _w3
+    _top3 = tk.Toplevel(root)
+    _top3.protocol( 'WM_DELETE_WINDOW' , root.destroy)
+    _w3 = Home(_top3)
+
+    root.mainloop()
+
+def open_add_assets():
+    global _top1, _w1
+    if _top1 is None or _top1.winfo_exists():
+        _top1 = tk.Toplevel(root)
+        _w1 = AddAssets(_top1)
+    else:
+        _top1.focus()
+
+def open_add_users():
+    global _top2, _w2
+    if _top2 is None or _top2.winfo_exists():
+        _top2 = tk.Toplevel(root)
+        _w2 = AddUsers(_top2)
+    else:
+        _top2.focus()
+
+def filepicker(listbox):
+    file = fd.askopenfile(mode='r', filetypes=[('CSV Files', '*.csv')])
+    if file:
+        print("File selected:", file.name)
+    else:
+        print("No file selected.")
+    with file:
+        reader = csv.reader(file)
+        for row in reader:
+            listbox.insert(END, ', '.join(row))
+
+
 
 _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
 _fgcolor = '#000000'  # X11 color: 'black'
@@ -27,21 +74,21 @@ _style_code_ran = 0
 def _style_code():
     global _style_code_ran
     if _style_code_ran: return
-    AdminApp_support.root.tk.eval('set ::xframe #d9d9d9')
-    AdminApp_support.root.tk.eval('set ::xfore #000000')
-    AdminApp_support.root.tk.eval('set ::ana2color beige')
-    AdminApp_support.root.tk.eval('set ::_tabfg1 black')
-    AdminApp_support.root.tk.eval('set ::_tabfg2 white')
-    AdminApp_support.root.tk.eval('set ::_tabbg1 #d9d9d9')
-    AdminApp_support.root.tk.eval('set ::_tabbg2 gray40')
-    AdminApp_support.root.tk.eval('set ::_bgmode light')        
-    try: AdminApp_support.root.tk.call('source',
+    root.tk.eval('set ::xframe #d9d9d9')
+    root.tk.eval('set ::xfore #000000')
+    root.tk.eval('set ::ana2color beige')
+    root.tk.eval('set ::_tabfg1 black')
+    root.tk.eval('set ::_tabfg2 white')
+    root.tk.eval('set ::_tabbg1 #d9d9d9')
+    root.tk.eval('set ::_tabbg2 gray40')
+    root.tk.eval('set ::_bgmode light')        
+    try: root.tk.call('source',
                 os.path.join(_location, 'themes', 'page-legacy.tcl'))
     except: pass
     style = ttk.Style()
-    style.theme_use('page-legacy')
+    style.theme_use('alt')
     style.configure('.', font = "TkDefaultFont")
-    AdminApp_support.root.tk_setPalette(
+    root.tk_setPalette(
             foreground = '#000000',
             background = '#d9d9d9',
             activeForeground = 'black',
@@ -50,7 +97,7 @@ def _style_code():
             selectBackground =  '#d9d9d9')
     _style_code_ran = 1
 
-class Toplevel1:
+class AddAssets:
     def __init__(self, top=None):
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
@@ -110,6 +157,7 @@ class Toplevel1:
         self.Button1.configure(highlightbackground="#d9d9d9")
         self.Button1.configure(highlightcolor="#000000")
         self.Button1.configure(text='''Choose a file''')
+        self.Button1.configure(command= lambda: filepicker(self.Scrolledlistbox1))
 
         self.Label1 = tk.Label(self.top)
         self.Label1.place(x=10, y=10, height=21, width=174)
@@ -138,7 +186,7 @@ class Toplevel1:
         self.Scrolledlistbox1.configure(selectbackground="#d9d9d9")
         self.Scrolledlistbox1.configure(selectforeground="black")
 
-class Toplevel1_1:
+class AddUsers:
     def __init__(self, top=None):
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
@@ -228,7 +276,7 @@ class Toplevel1_1:
         self.Label1_1.configure(highlightcolor="#000000")
         self.Label1_1.configure(text='''Add new Users''')
 
-class Toplevel2:
+class Home:
     def __init__(self, top=None):
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
@@ -269,6 +317,7 @@ class Toplevel2:
         self.Button1_2.configure(highlightbackground="#d9d9d9")
         self.Button1_2.configure(highlightcolor="#000000")
         self.Button1_2.configure(text='''Add new assets''')
+        self.Button1_2.configure(command= lambda: open_add_assets())
 
         self.Button1_2_1 = tk.Button(self.top)
         self.Button1_2_1.place(x=20, y=110, height=36, width=167)
@@ -282,6 +331,7 @@ class Toplevel2:
         self.Button1_2_1.configure(highlightbackground="#d9d9d9")
         self.Button1_2_1.configure(highlightcolor="#000000")
         self.Button1_2_1.configure(text='''Add new Users''')
+        self.Button1_2_1.configure(command= lambda: open_add_users())
 
 # The following code is added to facilitate the Scrolled widgets you specified.
 class AutoScroll(object):
@@ -395,10 +445,10 @@ def _on_shiftmouse(event, widget):
         elif event.num == 5:
             widget.xview_scroll(1, 'units')
 def start_up():
-    AdminApp_support.main()
+    main()
 
 if __name__ == '__main__':
-    AdminApp_support.main()
+    main()
 
 
 
