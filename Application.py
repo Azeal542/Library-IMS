@@ -53,9 +53,7 @@ def main(*args):
     thread = threading.Thread(target=scan_rfid, daemon=True)
     thread.start()
     root.mainloop()
-    #if _w2:
 
-    #Sign_in_RFID()
 
 def openCheckInWindow():
     global _top2, _w2
