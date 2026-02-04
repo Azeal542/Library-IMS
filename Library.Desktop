@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Test
+Comment=Script File Demo
+Exec=/home/caleb/Library/Library-IMS/Library.sh
+Icon=/usr/share/test.png
+Terminal=false
+Type=Application
+Comment[en_GB]=Library Management
+Name[en_GB]=Library
+StartupNotify=true
