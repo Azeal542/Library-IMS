@@ -16,7 +16,7 @@ import json
 from snipeit import Assets, Users
 # Read the token from the file
 try:
-    with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\API.txt", 'r') as file:
+    with open(r"/home/caleb/Documents/api.txt", 'r') as file:
         token = file.read().strip()  # .strip() removes any leading/trailing whitespace
     print(f"Token loaded successfully: {token[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:
@@ -50,7 +50,9 @@ def check_out_asset(assetID, userID):
     A = Assets()
     r = A.checkOutAsset(server, token, assetID, userID, note=None, locationID=None)
     #Add try catch for assets that were already checked out
+    #print(r)
     return r
+    
 
 def search_assets(keyword):
     A = Assets()
@@ -137,7 +139,7 @@ def get_Data_By_Serial(assetID):
     return r
     #print(r)
 
-#check_out_asset(1, 1)
+check_out_asset(1, 1)
 #get_asset("asdf1234")
 #check_in_asset(1)
 #get_assets()
@@ -170,4 +172,4 @@ def get_Data_By_Serial(assetID):
 #    serialdetails = json.loads(tagdetails)['serial']
 #    NameSerial = get_Data_By_Serial(serialdetails)
 #    print("Error checking in asset:", "Error checking in asset " + NameSerial[0] + " is already checked in.")
-check_in_asset("3")
+#check_in_asset("3")

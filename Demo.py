@@ -13,37 +13,53 @@ from tkinter.constants import *
 import os.path
 import API
 import json
+import reader
+import threading
+import queue
 
 logger = logging.getLogger()
 _location = os.path.dirname(__file__)
 
 # Define root globally
+global state
+state = 0
 root = None
 _top1 = None
 _top2 = None
 _top3 = None
+_w1 = None
+_w2 = None
+_w3 = None
 assetlist = []
 global signintxt
 signintxt = "Scan your ID"
 global user
 user = None
 
+rfid_queue = queue.Queue()
 
 def main(*args):
     '''Main entry point for the application.'''
     global root
     root = tk.Tk()
     root.withdraw()  #Hide the main Tk window
-
-    global _top1
+    global _top1, _w1, Entry_text
+    # Create the StringVar before building the UI or starting the reader thread
+    Entry_text = tk.StringVar(value="")
     _top1 = tk.Toplevel(root)
     _top1.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
     _w1 = SignInApp(_top1)
-
+    # Start background RFID thread
+    thread = threading.Thread(target=scan_rfid, daemon=True)
+    thread.start()
     root.mainloop()
+    #if _w2:
+
+    #Sign_in_RFID()
 
 def openCheckInWindow():
-    global _top2
+    global _top2, _w2
+    global state
     if user is None:
         messagebox.showerror("Error", "Please sign in first")
         return
@@ -52,11 +68,13 @@ def openCheckInWindow():
         _top2 = tk.Toplevel(root)
         _top2.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
         _w2 = checkInApp(_top2)
+        state = 2
     else:
         _top2.focus()
 
 def openCheckOutWindow():
-    global _top3
+    global _top3, _w3
+    global state
     if user is None:
         messagebox.showerror("Error", "Please sign in first")
         return
@@ -65,6 +83,7 @@ def openCheckOutWindow():
         _top3 = tk.Toplevel(root)
         _top3.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
         _w3 = checkOutApp(_top3)
+        state = 3
     else:
         _top3.focus()
 
@@ -90,23 +109,28 @@ def add_Entry_To_List(entry, listbox):
     assetlist.append(NameSerial[1])
     print(assetlist)
 
-def test_click(login):
-    value = login.get()
-    global user
-    print (value)
-    if value:
-        try:
-            fullname = API.get_Full_Name_By_Employee_ID(value)
-            user = API.get_ID_by_EmployeeID(value)
-            print(user)
-            messagebox.showinfo("Welcome", "Welcome, " + fullname)
-        except:
-            messagebox.showerror("Error", "Sign in failed")
+def Sign_in_RFID():
+    try:
+        value = rfid_queue.get_nowait()
+        rfid_queue.task_done()
+        global user
+        print (value)
+        if value:
+            try:
+                fullname = API.get_Full_Name_By_Employee_ID(value)
+                user = API.get_ID_by_EmployeeID(value)
+                print(user)
+                messagebox.showinfo("Welcome", "Welcome, " + fullname)
+            except:
+                messagebox.showerror("Error", "Sign in failed")
+                return
+        else:
+            messagebox.showerror("Error", "Please scan an ID")
             return
-    else:
-        messagebox.showerror("Error", "Please enter an ID")
-        return
-    root.update_idletasks() 
+        return value
+    except queue.Empty:
+        pass
+    #root.after(100, Sign_in_RFID) 
     
 def checkin_list():
     for each in assetlist:
@@ -132,10 +156,44 @@ def checkout_list():
             NameSerial = API.get_Data_By_Serial(serialdetails)
             messagebox.showerror("Error checking out asset:", "Error checking out asset: " + NameSerial[0] + " is already checked out.")
         else:
-            tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset_tag']).decode('utf-8')
+            tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset']).decode('utf-8')
             serialdetails = json.loads(tagdetails)['serial']
             NameSerial = API.get_Data_By_Serial(serialdetails)
             messagebox.showinfo("Success", "Checked out asset: " + NameSerial[0])
+
+def scan_rfid():
+    global state, _w1, _w2, _w3
+    while True:
+        id = reader.ScanRFID()
+        if id:
+            rfid_queue.put(id)
+            # Schedule UI update on the main thread depending on the current state
+            try:
+                if state == 2 and '_w2' in globals() and _w2 is not None:
+                    root.after(0, lambda v=id: _w2.set_entry_value(v))
+                    print('state 2')
+                elif state == 3 and '_w3' in globals() and _w3 is not None:
+                    root.after(0, lambda v=id: _w3.set_entry_value(v))
+                    print('state 3')
+                elif '_w1' in globals() and _w1 is not None:
+                    root.after(0, lambda v=id: _w1.set_entry_value(v))
+                    Sign_in_RFID()
+                else:
+                    Entry_text.set(str(id))
+            except Exception:
+                try:
+                    Entry_text.set(str(id))
+                except Exception:
+                    pass
+                
+
+def change_text(entry, text):
+    if text is not None:
+        entry.delete(0,tk.END)
+        entry.insert(0,text)
+    else:
+        entry.delete(0,tk.END)
+
 
 _bgcolor = '#d9d9d9'
 _fgcolor = 'black'
@@ -176,10 +234,13 @@ class SignInApp:
         _style_code()
         self.TEntry1 = ttk.Entry(self.top)
         self.TEntry1.place(relx=0.3, rely=0.375, relheight=0.053, relwidth=0.393)
-
+        global Entry_text
         self.TEntry1.configure(exportselection="0")
         self.TEntry1.configure(takefocus="")
-        self.TEntry1.configure(cursor="ibeam")
+        self.TEntry1.configure(cursor="pencil")
+        self.TEntry1.configure(textvariable=Entry_text)
+        self.TEntry1.configure(state='readonly')
+        
 
         self.Checkin = tk.Button(self.top)
         self.Checkin.place(relx=0.317, rely=0.55, height=36, width=107)
@@ -193,19 +254,6 @@ class SignInApp:
         self.Checkin.configure(highlightcolor="black")
         self.Checkin.configure(text='''Check in''')
         self.Checkin.configure(command=openCheckInWindow)
-
-        self.test = tk.Button(self.top)
-        self.test.place(relx=0.317, rely=0.45, height=36, width=107)
-        self.test.configure(activebackground="#9395D3")
-        self.test.configure(activeforeground="black")
-        self.test.configure(background="#B3B7EE")
-        self.test.configure(compound='left')
-        self.test.configure(disabledforeground="#a3a3a3")
-        self.test.configure(foreground="black")
-        self.test.configure(highlightbackground="#d9d9d9")
-        self.test.configure(highlightcolor="black")
-        self.test.configure(text='''sign in test''')
-        self.test.configure(command=lambda: test_click(self.TEntry1))
 
         self.Label1 = tk.Label(self.top)
         self.Label1.place(relx=0.3, rely=0.1, height=61, width=146)
@@ -248,6 +296,36 @@ class SignInApp:
         self.Checkin_1.configure(highlightcolor="black")
         self.Checkin_1.configure(text='''Check out''')
         self.Checkin_1.configure(command=openCheckOutWindow)
+        self.check_queue()
+    def set_entry_value(self, value):
+        """Safely update the Sign In entry from other threads via root.after.
+        Prefer updating the shared StringVar; fallback to direct widget updates.
+        """
+        try:
+            Entry_text.set(str(value))
+        except Exception:
+            try:
+                self.TEntry1.delete(0, tk.END)
+                self.TEntry1.insert(0, str(value))
+            except Exception:
+                pass
+    def on_rfid_update(self, event):
+        value = rfid_queue.get()
+        print('value is' + value)
+        if value:
+            self.TEntry1.delete(0, tk.END)
+            self.TEntry1.insert(0, value)
+    def check_queue(self):
+        try:
+            if not self.top.winfo_exists():
+                return
+            value = rfid_queue.get_nowait()
+            self.TEntry1.delete(0, "end")
+            self.TEntry1.insert(0, str(value))
+        except queue.Empty:
+            pass
+        if self.top.winfo_exists():
+            root.after(100, self.check_queue)   
 
 class checkInApp:
     def __init__(self, top=None):
@@ -302,15 +380,17 @@ class checkInApp:
         self.Button1.configure(command=lambda: add_Entry_To_List(self.TEntry1_1.get(), self.Scrolledlistbox1))
 
         _style_code()
+        global Entry_text
         self.TEntry1_1 = ttk.Entry(self.top)
         self.TEntry1_1.place(relx=0.085, rely=0.472, relheight=0.059
                 , relwidth=0.251)
         self.TEntry1_1.configure(exportselection="0")
-        #self.TEntry1_1.configure(state='readonly')
-        self.TEntry1_1.configure(cursor="ibeam")
+        self.TEntry1_1.configure(state='readonly')
+        self.TEntry1_1.configure(cursor="pencil")
+        self.TEntry1_1.configure(textvariable=Entry_text)
 
         self.Label2 = tk.Label(self.top)
-        self.Label2.place(relx=0.085, rely=0.406, height=19, width=74)
+        self.Label2.place(relx=0.085, rely=0.406, height=19, width=90)
         self.Label2.configure(activebackground="#d9d9d9")
         self.Label2.configure(activeforeground="black")
         self.Label2.configure(anchor='w')
@@ -323,7 +403,7 @@ class checkInApp:
         self.Label2.configure(text='''Book Name''')
 
         self.Label4 = tk.Label(self.top)
-        self.Label4.place(relx=0.085, rely=0.281, height=21, width=114)
+        self.Label4.place(relx=0.085, rely=0.281, height=21, width=130)
         self.Label4.configure(activebackground="#d9d9d9")
         self.Label4.configure(activeforeground="black")
         self.Label4.configure(anchor='w')
@@ -350,7 +430,7 @@ class checkInApp:
         self.Scrolledlistbox1.configure(selectforeground="black")
 
         self.Label1_1 = tk.Label(self.top)
-        self.Label1_1.place(relx=0.064, rely=0.031, height=61, width=186)
+        self.Label1_1.place(relx=0.064, rely=0.031, height=61, width=200)
         self.Label1_1.configure(activebackground="#d9d9d9")
         self.Label1_1.configure(activeforeground="black")
         self.Label1_1.configure(anchor='w')
@@ -363,6 +443,33 @@ class checkInApp:
         self.Label1_1.configure(highlightbackground="#d9d9d9")
         self.Label1_1.configure(highlightcolor="black")
         self.Label1_1.configure(text='''Check In''')
+        self.check_queue()
+    def set_entry_value(self, value):
+        """Safely update the Sign In entry from other threads via root.after.
+        Prefer updating the shared StringVar; fallback to direct widget updates.
+        """
+        print("set_entry_value called with:", value)
+        try:
+            Entry_text.set(str(value))
+        except Exception:
+            try:
+                self.TEntry1_1.delete(0, tk.END)
+                self.TEntry1_1.insert(0, str(value))
+            except Exception as e:
+                print("Error updating entry:", e)
+                pass
+    def check_queue(self):
+        """Poll the rfid_queue and update the entry when available."""
+        try:
+            if not self.top.winfo_exists():
+                return
+            value = rfid_queue.get_nowait()
+            self.TEntry1_1.delete(0, "end")
+            self.TEntry1_1.insert(0, str(value))
+        except queue.Empty:
+            pass
+        if self.top.winfo_exists():
+            root.after(100, self.check_queue)
 
 class checkOutApp:
     def __init__(self, top=None):
@@ -395,12 +502,14 @@ class checkOutApp:
         self.Button1_1.configure(command=lambda: add_Entry_To_List(self.TEntry1_1_1.get(), self.Scrolledlistbox1_1))
 
         _style_code()
+        global Entry_text
         self.TEntry1_1_1 = ttk.Entry(self.top)
         self.TEntry1_1_1.place(relx=0.085, rely=0.472, relheight=0.059
                 , relwidth=0.251)
         self.TEntry1_1_1.configure(exportselection="0")
-        #self.TEntry1_1_1.configure(state='readonly')
-        self.TEntry1_1_1.configure(cursor="ibeam")
+        self.TEntry1_1_1.configure(state='readonly')
+        self.TEntry1_1_1.configure(cursor="pencil")
+        self.TEntry1_1_1.configure(textvariable=Entry_text)
 
         self.Label2_1 = tk.Label(self.top)
         self.Label2_1.place(relx=0.085, rely=0.406, height=19, width=74)
@@ -476,6 +585,33 @@ class checkOutApp:
         self.Button2_1.configure(highlightcolor="black")
         self.Button2_1.configure(text='''Check Out and Exit''')
         self.Button2_1.configure(command=lambda: checkout_list())
+        self.check_queue()
+    def set_entry_value(self, value):
+        """Safely update the Sign In entry from other threads via root.after.
+        Prefer updating the shared StringVar; fallback to direct widget updates.
+        """
+        print("set_entry_value called with:", value)
+        try:
+            Entry_text.set(str(value))
+        except Exception:
+            try:
+                self.TEntry1_1_1.delete(0, tk.END)
+                self.TEntry1_1_1.insert(0, str(value))
+            except Exception as e:
+                print("Error updating entry:", e)
+                pass
+    def check_queue(self):
+        """Poll the rfid_queue and update the entry when available."""
+        try:
+            if not self.top.winfo_exists():
+                return
+            value = rfid_queue.get_nowait()
+            self.TEntry1_1_1.delete(0, "end")
+            self.TEntry1_1_1.insert(0, str(value))
+        except queue.Empty:
+            pass
+        if self.top.winfo_exists():
+            root.after(100, self.check_queue)
 
 # The following code is added to facilitate the Scrolled widgets you specified.
 class AutoScroll(object):
