@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Test
 Comment=Script File Demo
-Exec=/home/caleb/Library/Library-IMS/Library.sh
+Exec=/home/kfheadstart/Library/Library-IMS/Library.sh
 Icon=/usr/share/test.png
 Terminal=false
 Type=Application
