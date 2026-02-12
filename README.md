@@ -52,7 +52,8 @@ GPIO diagram reference
 ### Configuration
 
 1. Boot RasPi and login
-2. Run the following commands ```bash
+2. Run the following commands
+   ```bash
     sudo apt update
     sudo apt upgrade -y
     mkdir Library
@@ -60,13 +61,13 @@ GPIO diagram reference
     git clone https://github.com/Azeal542/Library-IMS
     ./Library-IMS/builder.sh
     ```
-3. Run sudo raspi-conifg
-4. Select Interfacing options and press enter
-5. Select SPI and enable it
-6. Place the API key for Snipe-IT at <div><div>/home/kfheadstart/Documents/api.txt</div></div>
-7. Run the SD card copier utility and duplicate the SD card to the SSD
-8. Shut down the Raspberry Pi and remove the SD card
-9. Boot the RasPi and verify that it is now booting from the SSD
+4. Run sudo raspi-conifg
+5. Select Interfacing options and press enter
+6. Select SPI and enable it
+7. Place the API key for Snipe-IT at <div><div>/home/kfheadstart/Documents/api.txt</div></div>
+8. Run the SD card copier utility and duplicate the SD card to the SSD
+9. Shut down the Raspberry Pi and remove the SD card
+10. Boot the RasPi and verify that it is now booting from the SSD
 
 ### Final Assembly
 
