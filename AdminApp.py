@@ -10,15 +10,38 @@ import tkinter as tk
 import tkinter.filedialog as fd
 import tkinter.ttk as ttk
 from tkinter.constants import *
+from tkinter import messagebox
+import json
 import os.path
 import csv
-
+import API
 root = None
 _top1 = None
 _top2 = None
 _top3 = None   
-
+global assetlist
+assetlist = []
 _location = os.path.dirname(__file__)
+
+
+def add_Entry_To_List(entry):
+    global assetlist
+    if entry == ['ID', 'Asset Name', 'Asset Tag']:
+        return
+    assetlist.append(entry)
+    print(assetlist)
+
+def ingest_assets():
+    global assetlist
+    for each in assetlist:
+        serial = each[0]
+        name = each[1]
+        tag = each[2]
+        result = API.create_asset(tag, 2, 1, name, serial)
+        if json.loads(result)['status'] != 'success':
+            messagebox.showerror("Error creating asset:", "Error creating asset: " + name)
+        else:
+            messagebox.showinfo("Success", "Created asset: " + name)
 
 def main(*args):
     '''Main entry point for the application.'''
@@ -59,6 +82,7 @@ def filepicker(listbox):
         reader = csv.reader(file)
         for row in reader:
             listbox.insert(END, ', '.join(row))
+            add_Entry_To_List(row)
 
 
 
@@ -129,6 +153,7 @@ class AddAssets:
         self.Button2.configure(highlightbackground="#d9d9d9")
         self.Button2.configure(highlightcolor="#000000")
         self.Button2.configure(text='''Commit to Server''')
+        self.Button2.configure(command= lambda: ingest_assets())
 
         self.menubar = tk.Menu(top,font="TkMenuFont",bg=_bgcolor,fg=_fgcolor)
         top.configure(menu = self.menubar)

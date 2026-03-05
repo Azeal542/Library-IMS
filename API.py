@@ -16,7 +16,7 @@ import json
 from snipeit import Assets, Users
 # Read the token from the file
 try:
-    with open(r"/home/caleb/Documents/api.txt", 'r') as file:
+    with open(r"C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\API.txt", 'r') as file:
         token = file.read().strip()  # .strip() removes any leading/trailing whitespace
     print(f"Token loaded successfully: {token[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:
@@ -34,7 +34,7 @@ server='http://10.70.50.215'
 def get_assets():
     A = Assets()
     r = A.get(server, token, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def check_in_asset(assetID):
     A = Assets()
@@ -50,54 +50,54 @@ def check_out_asset(assetID, userID):
     A = Assets()
     r = A.checkOutAsset(server, token, assetID, userID, note=None, locationID=None)
     #Add try catch for assets that were already checked out
-    #print(r)
+    #return r
     return r
     
 
 def search_assets(keyword):
     A = Assets()
     r = A.search(server, token, limit=None, order='asc', keyword=keyword, offset=None)
-    print(r)
+    return r
 
 def get_asset_by_model(modelID):
     A = Assets()
     r = A.getAssetsByModel(server, token, modelID, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def get_asset_by_category(categoryID):
     A = Assets()
     r = A.getAssetsByCategory(server, token, categoryID, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def get_asset_by_manufacturer(manufacturerID):
     A = Assets()
     r = A.getAssetsByManufacturer(server, token, manufacturerID, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def get_assets_by_company(companyID):
     A = Assets()
     r = A.getAssetsByCompany(server, token, companyID, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def get_asset_by_location(locationID):
     A = Assets()
     r = A.getAssetsByLocation(server, token, locationID, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def get_asset_by_status(statusID):
     A = Assets()
     r = A.getAssetsByStatus(server, token, statusID, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def get_asset_by_status_label(statusLabel):
     A = Assets()
     r = A.getAssetsByStatusLabel(server, token, statusLabel, limit=None, order='asc', offset=None)
-    print(r)
+    return r
 
 def get_details_by_id(assetID):
     A = Assets()
     r = A.getDetailsByID(server, token, assetID)
-    print(r)
+    return r
 
 def get_details_by_tag(tag):
     A = Assets()
@@ -107,22 +107,22 @@ def get_details_by_tag(tag):
 def get_details_by_serial(serial):
     A = Assets()
     r = A.getDetailsBySerial(server, token, serial)
-    print(r)
+    return r
 
-def create_asset(asset_tag, status_id, model_id, name):
+def create_asset(asset_tag, status_id, model_id, name, serial):
     A = Assets()
-    r = A.create(server, token, asset_tag, status_id, model_id, name)
-    print(r)
+    r = A.create(server, token, asset_tag, status_id, model_id, name, serial)
+    return r
 
 def get_id(asset_tag):
     A = Assets()
     r = A.getID(server, token, asset_tag)
-    print(r)
+    return r
 
 def delete_asset(assetID):
     A = Assets()
     r = A.delete(server, token, assetID)
-    print(r)
+    return r
 
 def get_ID_by_EmployeeID(employeeID):
     U = Users()
@@ -137,9 +137,25 @@ def get_Data_By_Serial(assetID):
     A = Assets()
     r = A.getDataBySerial(server, token, assetID)
     return r
-    #print(r)
+    #return r
 
-check_out_asset(1, 1)
+def get_User_By_Email(email):
+    U = Users()
+    r = U.getUserbyEmail(server, token, email)
+    #print(r)
+    return r
+
+def create_user(first_name, username, password, last_name, email, employee_num):
+    U = Users()
+    r = U.create(server, token, first_name, username, password, last_name, email, employee_num)
+    return r
+
+
+create_user("Test", "testuser123", "TestPassword!23", "User", "testuser123@kfheadstart.org", 10)
+
+#get_User_By_Email("wendy.mendes@kfheadstart.org")
+
+#check_out_asset(1, 1)
 #get_asset("asdf1234")
 #check_in_asset(1)
 #get_assets()
