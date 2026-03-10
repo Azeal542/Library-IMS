@@ -15,6 +15,11 @@ def checkin_log(user, message):
 def signin_log(user):
     logger.info(user + " signed in.")
 
+def failed_login_log():
+    logger.warning("Failed login attempt detected.")
+
+def damaged_book_log(user, book):
+    logger.warning(user + " reported a damaged book: " + book)
 
 
 #user = "John Doe"
@@ -22,3 +27,4 @@ def signin_log(user):
 #checkout_log(user, "example book.")
 #checkin_log(user, "example book.")
 #signin_log(user)
+#failed_login_log()
