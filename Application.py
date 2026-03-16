@@ -13,9 +13,10 @@ from tkinter.constants import *
 import os.path
 import API
 import json
-import reader
+#import reader
 import threading
 import queue
+import logit
 
 logger = logging.getLogger()
 _location = os.path.dirname(__file__)
@@ -85,6 +86,21 @@ def openCheckOutWindow():
     else:
         _top3.focus()
 
+def openReportDamageWindow():
+    global _top4, _w4
+    global state
+    if user is None:
+        messagebox.showerror("Error", "Please sign in first")
+        return
+    elif _top4 is None or not _top4.winfo_exists():
+        hide_signin()
+        _top4 = tk.Toplevel(root)
+        _top4.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
+        _w4 = reportDamageApp(_top4)
+        state = 4
+    else:
+        _top4.focus()
+
 def close_window(name):
     if name == "_top2" and _top2 is not None:
         _top2.destroy()
@@ -119,8 +135,10 @@ def Sign_in_RFID():
                 user = API.get_ID_by_EmployeeID(value)
                 print(user)
                 messagebox.showinfo("Welcome", "Welcome, " + fullname)
+                logit.signin_log(fullname, user)
             except:
                 messagebox.showerror("Error", "Sign in failed")
+                logit.failed_login_log()
                 return
         else:
             messagebox.showerror("Error", "Please scan an ID")
@@ -138,11 +156,13 @@ def checkin_list():
             serialdetails = json.loads(tagdetails)['serial']
             NameSerial = API.get_Data_By_Serial(serialdetails)
             messagebox.showerror("Error checking in asset:", "Error checking in asset: " + NameSerial[0] + " is already checked in.")
+            logit.error_log(user, result)
         else:
             tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset_tag']).decode('utf-8')
             serialdetails = json.loads(tagdetails)['serial']
             NameSerial = API.get_Data_By_Serial(serialdetails)
             messagebox.showinfo("Success", "Checked in asset: " + NameSerial[0])
+            logit.checkin_log(user, NameSerial[0])
 
 def checkout_list():
     for each in assetlist:
@@ -153,11 +173,13 @@ def checkout_list():
             serialdetails = json.loads(tagdetails)['serial']
             NameSerial = API.get_Data_By_Serial(serialdetails)
             messagebox.showerror("Error checking out asset:", "Error checking out asset: " + NameSerial[0] + " is already checked out.")
+            logit.error_log(user, result)
         else:
             tagdetails = API.get_details_by_tag(json.loads(result)['payload']['asset']).decode('utf-8')
             serialdetails = json.loads(tagdetails)['serial']
             NameSerial = API.get_Data_By_Serial(serialdetails)
             messagebox.showinfo("Success", "Checked out asset: " + NameSerial[0])
+            logit.checkout_log(user, NameSerial[0])
 
 def scan_rfid():
     global state, _w1, _w2, _w3
@@ -295,6 +317,21 @@ class SignInApp:
         self.Checkin_1.configure(text='''Check out''')
         self.Checkin_1.configure(command=openCheckOutWindow)
         self.check_queue()
+
+        self.Button1 = tk.Button(self.top)
+        self.Button1.place(relx=0.317, rely=0.85, height=36, width=107)
+        self.Button1.configure(activebackground="#9395D3")
+        self.Button1.configure(activeforeground="black")
+        self.Button1.configure(background="#B3B7EE")
+        self.Button1.configure(compound='left')
+        self.Button1.configure(disabledforeground="#a3a3a3")
+        self.Button1.configure(foreground="black")
+        self.Button1.configure(highlightbackground="#d9d9d9")
+        self.Button1.configure(highlightcolor="black")
+        self.Button1.configure(text='''Report Damage''')
+        self.Button1.configure(command=openReportDamageWindow)
+        self.check_queue()
+
     def set_entry_value(self, value):
         """Safely update the Sign In entry from other threads via root.after.
         Prefer updating the shared StringVar; fallback to direct widget updates.
@@ -606,6 +643,150 @@ class checkOutApp:
             value = rfid_queue.get_nowait()
             self.TEntry1_1_1.delete(0, "end")
             self.TEntry1_1_1.insert(0, str(value))
+        except queue.Empty:
+            pass
+        if self.top.winfo_exists():
+            root.after(100, self.check_queue)
+
+class reportDamageApp:
+    def __init__(self, top=None):
+        '''This class configures and populates the Report Damage window.
+           top is the Report Damage containing window.'''
+
+        top.geometry("470x320+797+225")
+        top.minsize(120, 1)
+        top.maxsize(1924, 981)
+        top.resizable(1,  1)
+        top.title("Report Damage")
+        top.configure(background="#FBF9FF")
+        top.configure(highlightbackground="#d9d9d9")
+        top.configure(highlightcolor="black")
+
+        self.top = top
+
+        self.menubar = tk.Menu(top,font="TkMenuFont",bg=_bgcolor,fg=_fgcolor)
+        top.configure(menu = self.menubar)
+
+        ########### start #######################
+        ########### end #######################
+
+        self.Button2 = tk.Button(self.top)
+        self.Button2.place(relx=0.574, rely=0.688, height=36, width=137)
+        self.Button2.configure(activebackground="#9395D3")
+        self.Button2.configure(activeforeground="black")
+        self.Button2.configure(background="#B3B7EE")
+        self.Button2.configure(compound='left')
+        self.Button2.configure(cursor="fleur")
+        self.Button2.configure(disabledforeground="#a3a3a3")
+        self.Button2.configure(foreground="black")
+        self.Button2.configure(highlightbackground="#d9d9d9")
+        self.Button2.configure(highlightcolor="black")
+        self.Button2.configure(text='''Check In and Exit''')
+        self.Button2.configure(command=lambda:
+                               checkin_list()
+                               )
+
+        self.Button1 = tk.Button(self.top)
+        self.Button1.place(relx=0.064, rely=0.694, height=36, width=127)
+        self.Button1.configure(activebackground="#9395D3")
+        self.Button1.configure(activeforeground="black")
+        self.Button1.configure(background="#B3B7EE")
+        self.Button1.configure(compound='left')
+        self.Button1.configure(cursor="fleur")
+        self.Button1.configure(disabledforeground="#a3a3a3")
+        self.Button1.configure(foreground="black")
+        self.Button1.configure(highlightbackground="#d9d9d9")
+        self.Button1.configure(highlightcolor="black")
+        self.Button1.configure(text='''Add to cart''')
+        self.Button1.configure(command=lambda: add_Entry_To_List(self.TEntry1_1.get(), self.Scrolledlistbox1))
+
+        _style_code()
+        global Entry_text
+        self.TEntry1_1 = ttk.Entry(self.top)
+        self.TEntry1_1.place(relx=0.085, rely=0.472, relheight=0.059
+                , relwidth=0.251)
+        self.TEntry1_1.configure(exportselection="0")
+        self.TEntry1_1.configure(state='readonly')
+        self.TEntry1_1.configure(cursor="pencil")
+        self.TEntry1_1.configure(textvariable=Entry_text)
+
+        self.Label2 = tk.Label(self.top)
+        self.Label2.place(relx=0.085, rely=0.406, height=19, width=90)
+        self.Label2.configure(activebackground="#d9d9d9")
+        self.Label2.configure(activeforeground="black")
+        self.Label2.configure(anchor='w')
+        self.Label2.configure(background="#FBF9FF")
+        self.Label2.configure(compound='left')
+        self.Label2.configure(disabledforeground="#a3a3a3")
+        self.Label2.configure(foreground="black")
+        self.Label2.configure(highlightbackground="#d9d9d9")
+        self.Label2.configure(highlightcolor="black")
+        self.Label2.configure(text='''Book Name''')
+
+        self.Label4 = tk.Label(self.top)
+        self.Label4.place(relx=0.085, rely=0.281, height=21, width=130)
+        self.Label4.configure(activebackground="#d9d9d9")
+        self.Label4.configure(activeforeground="black")
+        self.Label4.configure(anchor='w')
+        self.Label4.configure(background="#FBF9FF")
+        self.Label4.configure(compound='left')
+        self.Label4.configure(disabledforeground="#a3a3a3")
+        self.Label4.configure(foreground="black")
+        self.Label4.configure(highlightbackground="#d9d9d9")
+        self.Label4.configure(highlightcolor="black")
+        self.Label4.configure(text='''Scan the next book''')
+
+        self.Scrolledlistbox1 = ScrolledListBox(self.top)
+        self.Scrolledlistbox1.place(relx=0.511, rely=0.25, relheight=0.297
+                , relwidth=0.428)
+        self.Scrolledlistbox1.configure(background="white")
+        self.Scrolledlistbox1.configure(cursor="xterm")
+        self.Scrolledlistbox1.configure(disabledforeground="#a3a3a3")
+        self.Scrolledlistbox1.configure(exportselection="0")
+        self.Scrolledlistbox1.configure(font="TkFixedFont")
+        self.Scrolledlistbox1.configure(foreground="black")
+        self.Scrolledlistbox1.configure(highlightbackground="#d9d9d9")
+        self.Scrolledlistbox1.configure(highlightcolor="#d9d9d9")
+        self.Scrolledlistbox1.configure(selectbackground="#d9d9d9")
+        self.Scrolledlistbox1.configure(selectforeground="black")
+
+        self.Label1_1 = tk.Label(self.top)
+        self.Label1_1.place(relx=0.064, rely=0.031, height=61, width=200)
+        self.Label1_1.configure(activebackground="#d9d9d9")
+        self.Label1_1.configure(activeforeground="black")
+        self.Label1_1.configure(anchor='w')
+        self.Label1_1.configure(background="#FBF9FF")
+        self.Label1_1.configure(compound='left')
+        self.Label1_1.configure(cursor="fleur")
+        self.Label1_1.configure(disabledforeground="#a3a3a3")
+        self.Label1_1.configure(font="-family {Arial Black} -size 24 -weight bold")
+        self.Label1_1.configure(foreground="black")
+        self.Label1_1.configure(highlightbackground="#d9d9d9")
+        self.Label1_1.configure(highlightcolor="black")
+        self.Label1_1.configure(text='''Check In''')
+        self.check_queue()
+    def set_entry_value(self, value):
+        """Safely update the Sign In entry from other threads via root.after.
+        Prefer updating the shared StringVar; fallback to direct widget updates.
+        """
+        print("set_entry_value called with:", value)
+        try:
+            Entry_text.set(str(value))
+        except Exception:
+            try:
+                self.TEntry1_1.delete(0, tk.END)
+                self.TEntry1_1.insert(0, str(value))
+            except Exception as e:
+                print("Error updating entry:", e)
+                pass
+    def check_queue(self):
+        """Poll the rfid_queue and update the entry when available."""
+        try:
+            if not self.top.winfo_exists():
+                return
+            value = rfid_queue.get_nowait()
+            self.TEntry1_1.delete(0, "end")
+            self.TEntry1_1.insert(0, str(value))
         except queue.Empty:
             pass
         if self.top.winfo_exists():
