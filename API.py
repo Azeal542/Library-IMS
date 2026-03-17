@@ -151,7 +151,7 @@ def create_user(first_name, username, password, last_name, email, employee_num):
     return r
 
 
-create_user("Test", "testuser123", "TestPassword!23", "User", "testuser123@kfheadstart.org", 10)
+#create_user("Test", "testuser123", "TestPassword!23", "User", "testuser123@kfheadstart.org", 10)
 
 #get_User_By_Email("wendy.mendes@kfheadstart.org")
 
