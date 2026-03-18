@@ -16,7 +16,7 @@ import json
 from snipeit import Assets, Users
 # Read the token from the file
 try:
-    with open(r"C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\API.txt", 'r') as file:
+    with open(r"/home/kfheadstart/Documents/api.txt", 'r') as file:
         token = file.read().strip()  # .strip() removes any leading/trailing whitespace
     print(f"Token loaded successfully: {token[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:

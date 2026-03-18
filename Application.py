@@ -13,7 +13,7 @@ from tkinter.constants import *
 import os.path
 import API
 import json
-#import reader
+import reader
 import threading
 import queue
 import logit
