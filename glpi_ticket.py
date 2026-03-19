@@ -7,8 +7,8 @@ from requests.exceptions import RequestException, Timeout, ConnectionError
 GLPI_URL = "http://10.70.50.11/apirest.php/"
 
 try:
-    with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\glpi.txt", 'r') as file:
-    #with open(r"/home/kfheadstart/Documents/api.txt", 'r') as file:
+    #with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\glpi.txt", 'r') as file:
+    with open(r"/home/kfheadstart/Documents/glpi.txt", 'r') as file:
         glpi = file.read().strip()  # .strip() removes any leading/trailing whitespace
     print(f"Token loaded successfully: {glpi[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:
@@ -22,8 +22,8 @@ except Exception as e:
     glpi = None   
 
 try:
-    with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\user.txt", 'r') as file:
-    #with open(r"/home/kfheadstart/Documents/api.txt", 'r') as file:
+    #with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\user.txt", 'r') as file:
+    with open(r"/home/kfheadstart/Documents/user.txt", 'r') as file:
         user = file.read().strip()  # .strip() removes any leading/trailing whitespace
     print(f"Token loaded successfully: {user[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:
@@ -280,11 +280,15 @@ def reportDamagedAsset(assets, location: str, user: str):
     
     # Build description with a line for each asset
     description_lines = [f"Location: {location}", ""]
+    description_lines.append(f"Reported by: {user}")
     description_lines.append("Affected Assets:")
     
     if isinstance(assets, list):
         for i, asset in enumerate(assets, 1):
-            if isinstance(asset, dict):
+            if isinstance(asset, list) and len(asset) == 2:
+                asset_name, asset_id = asset
+                description_lines.append(f"  {i}. Asset ID: {asset_id} - {asset_name}")
+            elif isinstance(asset, dict):
                 asset_id = asset.get('id', asset.get('asset_id', 'Unknown'))
                 asset_name = asset.get('name', asset.get('asset_name', ''))
                 if asset_name:
@@ -323,7 +327,8 @@ def reportDamagedAsset(assets, location: str, user: str):
 
 def main():
     reportDamagedAsset(
-        assets=[{'id': 123, 'name': 'Laptop A'}, {'id': 456, 'name': 'Projector B'}],
+        #assets=[{'id': 123, 'name': 'Laptop A'}, {'id': 456, 'name': 'Projector B'}],
+        assets=[['Laptop', 123], ['projector', 456]],
         location="Main Office",
         user="John Doe"
     )

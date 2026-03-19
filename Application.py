@@ -39,6 +39,7 @@ global signintxt
 signintxt = "Scan your ID"
 global user
 user = None
+damage_data_matrix = []
 
 rfid_queue = queue.Queue()
 
@@ -62,10 +63,12 @@ def main(*args):
 def openCheckInWindow():
     global _top2, _w2
     global state
+    global assetlist
     if user is None:
         messagebox.showerror("Error", "Please sign in first")
         return
     elif _top2 is None or not _top2.winfo_exists():
+        assetlist = []
         hide_signin()
         _top2 = tk.Toplevel(root)
         _top2.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
@@ -77,10 +80,12 @@ def openCheckInWindow():
 def openCheckOutWindow():
     global _top3, _w3
     global state
+    global assetlist
     if user is None:
         messagebox.showerror("Error", "Please sign in first")
         return
     elif _top3 is None or not _top3.winfo_exists():
+        assetlist = []
         hide_signin()
         _top3 = tk.Toplevel(root)
         _top3.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
@@ -92,10 +97,12 @@ def openCheckOutWindow():
 def openReportDamageWindow():
     global _top4, _w4
     global state
+    global damage_data_matrix
     if user is None:
         messagebox.showerror("Error", "Please sign in first")
         return
     elif _top4 is None or not _top4.winfo_exists():
+        damage_data_matrix = []
         hide_signin()
         _top4 = tk.Toplevel(root)
         _top4.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # Close all on exit
@@ -128,22 +135,29 @@ def add_Entry_To_List(entry, listbox):
 
 def add_damage_Entry_To_List(entry, listbox):
     global NameSerial
+    global damage_data_matrix
     try:
         NameSerial = API.get_Data_By_Serial(entry)
-        NameSerial = f"{NameSerial[0]}\n{NameSerial[1]}"
     except Exception as e:
         messagebox.showerror("Error fetching data:", e)
         return
-    listbox.insert(END, NameSerial)
-    assetlist.append(NameSerial)
-    print(assetlist)
+    
+    # Append as a row to the matrix
+    damage_data_matrix.append([NameSerial[0], NameSerial[1]])
+    
+    # Display in listbox as "AssetName - AssetID"
+    listbox.insert(END, f"{NameSerial[0]} - {NameSerial[1]}")
+    print(f"Added to matrix: {damage_data_matrix}")
 
 def report_list():
+    global damage_data_matrix
     glpi_ticket.reportDamagedAsset(
-        assets=assetlist,
+        assets=damage_data_matrix,
         location="Main Office",
         user=user
     )
+    # Clear the matrix after report
+    damage_data_matrix.clear()
 
 def Sign_in_RFID():
     try:
@@ -736,7 +750,7 @@ class reportDamageApp:
         self.Button1.configure(highlightbackground="#d9d9d9")
         self.Button1.configure(highlightcolor="black")
         self.Button1.configure(text='''Add to cart''')
-        self.Button1.configure(command=lambda: add_Entry_To_List(self.TEntry1_1.get(), self.Scrolledlistbox1))
+        self.Button1.configure(command=lambda: add_damage_Entry_To_List(self.TEntry1_1.get(), self.Scrolledlistbox1))
 
         _style_code()
         global Entry_text
