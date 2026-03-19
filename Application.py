@@ -195,6 +195,9 @@ def scan_rfid():
                 elif state == 3 and '_w3' in globals() and _w3 is not None:
                     root.after(0, lambda v=id: _w3.set_entry_value(v))
                     print('state 3')
+                elif state == 4 and '_w4' in globals() and _w4 is not None:
+                    root.after(0, lambda v=id: _w4.set_entry_value(v))
+                    print('state 4')
                 elif '_w1' in globals() and _w1 is not None:
                     root.after(0, lambda v=id: _w1.set_entry_value(v))
                     Sign_in_RFID()
