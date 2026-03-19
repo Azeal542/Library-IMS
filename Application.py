@@ -130,6 +130,7 @@ def add_damage_Entry_To_List(entry, listbox):
     global NameSerial
     try:
         NameSerial = API.get_Data_By_Serial(entry)
+        NameSerial = f"{NameSerial[0]}\n{NameSerial[1]}"
     except Exception as e:
         messagebox.showerror("Error fetching data:", e)
         return

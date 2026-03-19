@@ -10,31 +10,31 @@ try:
     with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\glpi.txt", 'r') as file:
     #with open(r"/home/kfheadstart/Documents/api.txt", 'r') as file:
         glpi = file.read().strip()  # .strip() removes any leading/trailing whitespace
-    print(f"Token loaded successfully: {token[:5]}...")  # Show only first 5 characters for security
+    print(f"Token loaded successfully: {glpi[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:
     print("Error: The file C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\glpi.txt was not found.")
-    token = None
+    glpi = None
 except PermissionError:
     print("Error: Permission denied when reading C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\glpi.txt")
-    token = None
+    glpi = None
 except Exception as e:
     print(f"An error occurred: {e}")
-    token = None   
+    glpi = None   
 
 try:
     with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\user.txt", 'r') as file:
     #with open(r"/home/kfheadstart/Documents/api.txt", 'r') as file:
         user = file.read().strip()  # .strip() removes any leading/trailing whitespace
-    print(f"Token loaded successfully: {token[:5]}...")  # Show only first 5 characters for security
+    print(f"Token loaded successfully: {user[:5]}...")  # Show only first 5 characters for security
 except FileNotFoundError:
     print("Error: The file C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\user.txt was not found.")
-    token = None
+    user = None
 except PermissionError:
     print("Error: Permission denied when reading C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\user.txt")
-    token = None
+    user = None
 except Exception as e:
     print(f"An error occurred: {e}")
-    token = None   
+    user = None   
 
 USE_TOKEN_AUTH = True
 USER_TOKEN = user
@@ -272,10 +272,10 @@ def reportDamagedAsset(assets, location: str, user: str):
 
     Args:
         assets: List of assets
-        client: An instance of GLPIClient to use for API calls
+        location: Location where damage occurred
         user: Username reporting the damage
     """
-    client=GLPIClient(base_url=GLPI_URL, app_token=APP_TOKEN, user_token=USER_TOKEN),
+    client = GLPIClient(base_url=GLPI_URL, app_token=APP_TOKEN, user_token=USER_TOKEN)
     ticket_title = f"Damaged Asset Report - {user}"
     
     # Build description with a line for each asset
@@ -315,9 +315,11 @@ def reportDamagedAsset(assets, location: str, user: str):
     if ticket:
         asset_count = len(assets) if isinstance(assets, list) else 1
         print(f"Damage report ticket created for {asset_count} asset(s) reported by {user}.")
+        client.kill_session()
         return ticket
     else:
         print(f"Failed to create damage report ticket.")
+        client.kill_session()
 
 def main():
     reportDamagedAsset(
@@ -325,3 +327,6 @@ def main():
         location="Main Office",
         user="John Doe"
     )
+
+if __name__ == "__main__":
+    main()
