@@ -17,6 +17,7 @@ import reader
 import threading
 import queue
 import logit
+import glpi_ticket
 
 logger = logging.getLogger()
 _location = os.path.dirname(__file__)
@@ -28,9 +29,11 @@ root = None
 _top1 = None
 _top2 = None
 _top3 = None
+_top4 = None
 _w1 = None
 _w2 = None
 _w3 = None
+_w4 = None
 assetlist = []
 global signintxt
 signintxt = "Scan your ID"
@@ -123,19 +126,36 @@ def add_Entry_To_List(entry, listbox):
     assetlist.append(NameSerial[1])
     print(assetlist)
 
+def add_damage_Entry_To_List(entry, listbox):
+    global NameSerial
+    try:
+        NameSerial = API.get_Data_By_Serial(entry)
+    except Exception as e:
+        messagebox.showerror("Error fetching data:", e)
+        return
+    listbox.insert(END, NameSerial)
+    assetlist.append(NameSerial)
+    print(assetlist)
+
+def report_list():
+    glpi_ticket.reportDamagedAsset(
+        assets=assetlist,
+        location="Main Office",
+        user=user
+    )
+
 def Sign_in_RFID():
     try:
         value = rfid_queue.get_nowait()
         rfid_queue.task_done()
+        #value = Entry_text.get()
         global user
-        print (value)
         if value:
             try:
                 fullname = API.get_Full_Name_By_Employee_ID(value)
                 user = API.get_ID_by_EmployeeID(value)
-                print(user)
                 messagebox.showinfo("Welcome", "Welcome, " + fullname)
-                logit.signin_log(fullname, user)
+                logit.signin_log(fullname)
             except:
                 messagebox.showerror("Error", "Sign in failed")
                 logit.failed_login_log()
@@ -262,7 +282,21 @@ class SignInApp:
         self.TEntry1.configure(takefocus="")
         self.TEntry1.configure(cursor="pencil")
         self.TEntry1.configure(textvariable=Entry_text)
-        self.TEntry1.configure(state='readonly')
+        #self.TEntry1.configure(state='readonly')
+
+        self.button1 = tk.Button(self.top)
+        self.button1.place(relx=0.3, rely=0.45, height=36, width=107)
+        self.button1.configure(activebackground="#9395D3")
+        self.button1.configure(activeforeground="black")
+        self.button1.configure(background="#B3B7EE")
+        self.button1.configure(compound='left')
+        self.button1.configure(cursor="fleur")
+        self.button1.configure(disabledforeground="#a3a3a3")
+        self.button1.configure(foreground="black") 
+        self.button1.configure(highlightbackground="#d9d9d9")
+        self.button1.configure(highlightcolor="black")
+        self.button1.configure(text='''Sign In''')
+        self.button1.configure(command=Sign_in_RFID)
         
 
         self.Checkin = tk.Button(self.top)
@@ -321,18 +355,18 @@ class SignInApp:
         self.Checkin_1.configure(command=openCheckOutWindow)
         self.check_queue()
 
-        self.Button1 = tk.Button(self.top)
-        self.Button1.place(relx=0.317, rely=0.85, height=36, width=107)
-        self.Button1.configure(activebackground="#9395D3")
-        self.Button1.configure(activeforeground="black")
-        self.Button1.configure(background="#B3B7EE")
-        self.Button1.configure(compound='left')
-        self.Button1.configure(disabledforeground="#a3a3a3")
-        self.Button1.configure(foreground="black")
-        self.Button1.configure(highlightbackground="#d9d9d9")
-        self.Button1.configure(highlightcolor="black")
-        self.Button1.configure(text='''Report Damage''')
-        self.Button1.configure(command=openReportDamageWindow)
+        self.DamageButton = tk.Button(self.top)
+        self.DamageButton.place(relx=0.317, rely=0.85, height=36, width=107)
+        self.DamageButton.configure(activebackground="#9395D3")
+        self.DamageButton.configure(activeforeground="black")
+        self.DamageButton.configure(background="#B3B7EE")
+        self.DamageButton.configure(compound='left')
+        self.DamageButton.configure(disabledforeground="#a3a3a3")
+        self.DamageButton.configure(foreground="black")
+        self.DamageButton.configure(highlightbackground="#d9d9d9")
+        self.DamageButton.configure(highlightcolor="black")
+        self.DamageButton.configure(text='''Report Damage''')
+        self.DamageButton.configure(command=openReportDamageWindow)
         self.check_queue()
 
     def set_entry_value(self, value):
@@ -684,9 +718,9 @@ class reportDamageApp:
         self.Button2.configure(foreground="black")
         self.Button2.configure(highlightbackground="#d9d9d9")
         self.Button2.configure(highlightcolor="black")
-        self.Button2.configure(text='''Check In and Exit''')
+        self.Button2.configure(text='''Report and Exit''')
         self.Button2.configure(command=lambda:
-                               checkin_list()
+                               report_list()
                                )
 
         self.Button1 = tk.Button(self.top)
@@ -766,7 +800,7 @@ class reportDamageApp:
         self.Label1_1.configure(foreground="black")
         self.Label1_1.configure(highlightbackground="#d9d9d9")
         self.Label1_1.configure(highlightcolor="black")
-        self.Label1_1.configure(text='''Check In''')
+        self.Label1_1.configure(text='''Report Damage''')
         self.check_queue()
     def set_entry_value(self, value):
         """Safely update the Sign In entry from other threads via root.after.
