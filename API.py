@@ -8,29 +8,15 @@ To do:
 
 """
 
-
-
-
-
 import json
 from snipeit import Assets, Users
-# Read the token from the file
-try:
-    with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\API.txt", 'r') as file:
-    #with open(r"/home/kfheadstart/Documents/api.txt", 'r') as file:
-        token = file.read().strip()  # .strip() removes any leading/trailing whitespace
-    print(f"Token loaded successfully: {token[:5]}...")  # Show only first 5 characters for security
-except FileNotFoundError:
-    print("Error: The file C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\API.txt was not found.")
-    token = None
-except PermissionError:
-    print("Error: Permission denied when reading C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\API.txt")
-    token = None
-except Exception as e:
-    print(f"An error occurred: {e}")
-    token = None   
+import os
+from dotenv import load_dotenv
 
-server='http://10.70.50.215'
+load_dotenv()
+
+token = os.getenv('SNIPE_IT_API_KEY')
+server= os.getenv('SNIPE_IT_BASE_URL')
 
 def get_assets():
     A = Assets()
@@ -50,8 +36,6 @@ def get_asset(AssetTAG):
 def check_out_asset(assetID, userID):
     A = Assets()
     r = A.checkOutAsset(server, token, assetID, userID, note=None, locationID=None)
-    #Add try catch for assets that were already checked out
-    #return r
     return r
     
 

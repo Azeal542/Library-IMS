@@ -3,38 +3,14 @@ import json
 import sys
 from typing import Optional, Dict, Any
 from requests.exceptions import RequestException, Timeout, ConnectionError
+import os
+from dotenv import load_dotenv
 
-GLPI_URL = "http://10.70.50.11/apirest.php/"
+load_dotenv()
 
-try:
-    #with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\glpi.txt", 'r') as file:
-    with open(r"/home/kfheadstart/Documents/glpi.txt", 'r') as file:
-        glpi = file.read().strip()  # .strip() removes any leading/trailing whitespace
-    print(f"Token loaded successfully: {glpi[:5]}...")  # Show only first 5 characters for security
-except FileNotFoundError:
-    print("Error: The file C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\glpi.txt was not found.")
-    glpi = None
-except PermissionError:
-    print("Error: Permission denied when reading C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\glpi.txt")
-    glpi = None
-except Exception as e:
-    print(f"An error occurred: {e}")
-    glpi = None   
-
-try:
-    #with open(r"C:\Users\CalebPierce\OneDrive - Klamath Family Head Start\Documents\user.txt", 'r') as file:
-    with open(r"/home/kfheadstart/Documents/user.txt", 'r') as file:
-        user = file.read().strip()  # .strip() removes any leading/trailing whitespace
-    print(f"Token loaded successfully: {user[:5]}...")  # Show only first 5 characters for security
-except FileNotFoundError:
-    print("Error: The file C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\user.txt was not found.")
-    user = None
-except PermissionError:
-    print("Error: Permission denied when reading C:\\Users\\CalebPierce\\OneDrive - Klamath Family Head Start\\Documents\\user.txt")
-    user = None
-except Exception as e:
-    print(f"An error occurred: {e}")
-    user = None   
+glpi = os.getenv('GLPI_API_KEY')
+GLPI_URL = os.getenv('GLPI_BASE_URL')
+user = os.getenv('GLPI_USER_KEY')
 
 USE_TOKEN_AUTH = True
 USER_TOKEN = user
