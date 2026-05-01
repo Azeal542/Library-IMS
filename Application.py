@@ -13,7 +13,7 @@ from tkinter.constants import *
 import os.path
 import API
 import json
-import reader
+#import reader
 import threading
 import queue
 import logit
@@ -59,6 +59,12 @@ def main(*args):
     thread.start()
     root.mainloop()
 
+def isScanned(id, id_set):
+    while True:  # Loop until a unique ID is scanned
+        if id in id_set:
+            Exception("ID has already been scanned. Please scan again.")
+        else:
+            return id
 
 def openCheckInWindow():
     global _top2, _w2
@@ -126,6 +132,7 @@ def add_Entry_To_List(entry, listbox):
     global NameSerial
     try:
         NameSerial = API.get_Data_By_Serial(entry)
+        isScanned(NameSerial[1], assetlist)
     except Exception as e:
         messagebox.showerror("Error fetching data:", e)
         return
@@ -138,6 +145,7 @@ def add_damage_Entry_To_List(entry, listbox):
     global damage_data_matrix
     try:
         NameSerial = API.get_Data_By_Serial(entry)
+        isScanned(NameSerial[1], damage_data_matrix)
     except Exception as e:
         messagebox.showerror("Error fetching data:", e)
         return
@@ -297,22 +305,22 @@ class SignInApp:
         self.TEntry1.configure(takefocus="")
         self.TEntry1.configure(cursor="pencil")
         self.TEntry1.configure(textvariable=Entry_text)
-        #self.TEntry1.configure(state='readonly')
+        self.TEntry1.configure(state='readonly')
 
-        self.button1 = tk.Button(self.top)
-        self.button1.place(relx=0.3, rely=0.45, height=36, width=107)
-        self.button1.configure(activebackground="#9395D3")
-        self.button1.configure(activeforeground="black")
-        self.button1.configure(background="#B3B7EE")
-        self.button1.configure(compound='left')
-        self.button1.configure(cursor="fleur")
-        self.button1.configure(disabledforeground="#a3a3a3")
-        self.button1.configure(foreground="black") 
-        self.button1.configure(highlightbackground="#d9d9d9")
-        self.button1.configure(highlightcolor="black")
-        self.button1.configure(text='''Sign In''')
-        self.button1.configure(command=Sign_in_RFID)
-        
+        #self.button1 = tk.Button(self.top)
+        #self.button1.place(relx=0.3, rely=0.45, height=36, width=107)
+        #self.button1.configure(activebackground="#9395D3")
+        #self.button1.configure(activeforeground="black")
+        #self.button1.configure(background="#B3B7EE")
+        #self.button1.configure(compound='left')
+        #self.button1.configure(cursor="fleur")
+        #self.button1.configure(disabledforeground="#a3a3a3")
+        #self.button1.configure(foreground="black") 
+        #self.button1.configure(highlightbackground="#d9d9d9")
+        #self.button1.configure(highlightcolor="black")
+        #self.button1.configure(text='''Sign In''')
+        #self.button1.configure(command=Sign_in_RFID)
+        #
 
         self.Checkin = tk.Button(self.top)
         self.Checkin.place(relx=0.317, rely=0.55, height=36, width=107)

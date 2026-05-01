@@ -73,6 +73,7 @@ def create_users():
         #print(first_name, username, password, last_name, email, employee_num)
         API.create_user(first_name, username, password, last_name, email, employee_num)
 
-import_users()
-check_users()
-create_users()
+if __name__ == "__main__":
+    import_users()
+    check_users()
+    create_users()
